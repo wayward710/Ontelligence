@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta name="keywords" content="D3.js,Force-Directed Graph">
+    <title>Ontelligence Viewer</title>
+    <!--<script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.25.0"></script>-->
+    <script type="text/javascript" src="js/d3.v3.js"></script>
+<style type="text/css">
+
+.node {
+  cursor: pointer;
+}
+
+.desc{
+    /*border: #000 solid thin;*/
+    text-align: center;
+    font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    color:#660000;
+    width:800px;
+    margin:auto;
+  }
+
+path.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1px;
+}
+
+
+text {
+  fill: #000;
+  font: 12px sans-serif;
+  pointer-events: none;
+}
+.main{
+  min-height: 800px;
+  height: 100%;
+  width: 100%;
+}
+#chart{
+ 
+}
+    </style>
+<script type="text/javascript">
+
+var w = 1500,
+    h = 1000,
+    node,
+    path,
+    root,nodes,links,rootNode,id=19;
+
+var force,vis;
+var LoadData = true;
+function update() {
+   if (force) force.stop();
+  nodes = flatten(root);
+  links = d3.layout.tree().links(nodes);
+
+  // Restart the force layout.
+  force
+      .nodes(nodes)
+      .links(links)
+      .linkDistance(100)
+      .charge(-1500)
+      .theta(1)
+      .gravity(0.03)
+      .start();
+
+  vis.selectAll("path").remove();    
+  vis.selectAll(".node").remove();
+  
+  path = vis.selectAll("path.link");
+  path = path.data(force.links());
+  path.exit().remove();
+  path
+      .enter().append("svg:path")
+      .attr("class", "link")
+      .attr("marker-end", "url(#end)");
+
+  node = vis.selectAll(".node");
+  node = node.data(force.nodes());
+  node.exit().remove();
+    node
+        .enter().append("g")
+        .attr("class", "node")
+        .on("click", click)
+        .on("mouseover", mouseover)
+        .on("mouseout", mouseout)
+        .call(force.drag);
+
+   node.append("image")
+      .attr("xlink:href", function(d){return d.imageURL;})//http://t2.gstatic.//com/images?q=tbn:ANd9GcT6fN48PEP2-z-JbutdhqfypsYdciYTAZEziHpBJZLAfM6rxqYX";})
+      .attr("class","image")
+      .attr("x", -20)
+      .attr("y", -20)
+      .attr("width",42)
+      .attr("height",42);
+
+    node.append("text")
+      .attr("class","text")
+      .attr("x",15)
+      .attr("dy", ".35em")
+      .style("fill", color)
+      .text(function(d) {return d.name; });
+}
+
+function tick() {
+  path.attr("d", function(d) {
+
+        if(d.source.id == rootNode.id){
+          d.source.x = (w/2-15);
+          d.source.y = (h/2-15);
+        }
+      
+        var dx = d.target.x - d.source.x,
+            dy = d.target.y - d.source.y,
+            dr = Math.sqrt(dx * dx + dy * dy);
+        return "M" + 
+            d.source.x + "," + 
+            d.source.y + "A" + 
+            dr + "," + dr + " 0 0,1 " + 
+            d.target.x + "," + 
+            d.target.y;
+    });
+
+  node.attr("transform", function(d) {
+
+    if(d.id == rootNode.id){
+      return "translate(" + ((w/2)-20) + "," + ((h/2)-20) + ")";
+    }
+    return "translate(" + d.x + "," + d.y + ")"; });
+  
+}
+
+function color(d) {
+  return d._children ? "#0000FF" : d.children ? "#2B60DE" : "#fd8d3c";
+}
+// Toggle children on click.
+function click(d) {
+  
+  if ((d.children != null || d.children != undefined) || (d._children != null || d._children != undefined)) {
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+      }
+      update();
+  }
+  else {
+	  alert("hi!");
+  }
+  
+}
+
+function mouseover(d) {
+	//alert("mouseover");
+	desc.innerHTML = d.name + " ontology info here<br><br>";
+}
+
+function mouseout(d) {
+	//alert("mouseover");
+	desc.innerHTML = "<br><br>";
+}
+
+var findNode = function (node) {
+    for (var i in force.nodes()) {
+        if (force.nodes()[i] === node) return true
+    };
+  return false;
+}
+
+// Returns a list of all nodes under the root.
+function flatten(root) {
+  var nodes = [], i = 0;
+
+  function recurse(node) {
+    if (node.children) node.children.forEach(recurse);
+    if (!node.id) node.id = ++i;
+    nodes.push(node);
+  }
+
+  rootNode = root;
+  recurse(root);
+  
+  return nodes;
+}
+function loadImage(){
+  if(LoadData){
+root = {
+"name": "NASA", "imageURL":"images/nasa-1-282702.png","id":"1",
+"children": [
+  {"name": "Aeronautics", "imageURL":"images/rocket-launch-run-icon.png","id":"2",
+  "children":[{"name": "Aerodynamics", "desc": "Includes aerodynamics of flight vehicles, test bodies, airframe components and combinations, wings, and control surfaces. Also includes aerodynamics of rotors, stators, fans, and other elements of turbomachinery. For related information see also 34 Fluid Mechanics and Thermodynamics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"3"},
+	  {"name": "Aeronautics (General)", "desc": "Includes general research topics related to manned and unmanned aircraft and the problems of flight within the Earth's atmosphere. Also includes manufacturing, maintenance, and repair of aircraft. For specific topics in aeronautics see categories 02 through 09. For information related to space vehicles see 12 Astronautics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"100"},
+	  {"name": "Aerospace Medicine", "desc": "Includes the biological and physiological effects of atmospheric and space flight (weightlessness, space radiation, acceleration, and altitude stress) on the human being; and the prevention of adverse effects of those environments. For psychological and behavioral effects of aerospace environments see 53 Behavioral Science. For the effects of space on animals and plants see 51 Life Sciences.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"101"},
+	  {"name": "Air Transportation and Safety", "desc": "Includes passenger and cargo air transport operations; airport ground operations; flight safety and hazards; and aircraft accidents. Systems and hardware specific to ground operations of aircraft and to airport construction are covered in 09 Research and Support Facilities (Air). Air traffic control is covered in 04 Aircraft Communications and Navigation. For related information see also 16 Space Transportation and Safety; and 85 Technology Utilization and Surface Transportation.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"102"},
+	  {"name": "Aircraft Communications and Navigation", "desc": "Includes all modes of communication with and between aircraft; air navigation systems (satellite and ground based); and air traffic control. For related information see also 06 Avionics and Aircraft Instrumentation; 17 Space Communications, Spacecraft Communications, Command and Tracking; and 32 Communications and Radar.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"103"},
+	  {"name": "Aircraft Design, Testing and Performance", "desc": "Includes all stages of design of aircraft and aircraft structures and systems. Also includes aircraft testing, performance, and evaluation, and aircraft and flight simulation technology. For related information see also 18 Spacecraft Design, Testing and Performance; and 39 Structural Mechanics. For land transportation vehicles see 85 Technology Utilization and Surface Transportation.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"104"},
+	  {"name": "Aircraft Propulsion and Power", "desc": "Includes primary propulsion systems and related systems and components, e.g., gas turbine engines, compressors, and fuel systems; and onboard auxiliary power plants for aircraft. For related information see also 20 Spacecraft Propulsion and Power; 28 Propellants and Fuels; and 44 Energy Production and Conversion.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"105"},
+	  {"name": "Aircraft Stability and Control", "desc": "Includes flight dynamics, aircraft handling qualities, piloting, flight controls, and autopilots. For related information see also 05 Aircraft Design, Testing and Performance; and 06 Avionics and Aircraft Instrumentation.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"106"},
+	  {"name": "Avionics and Aircraft Instrumentation", "desc": "Includes all avionics systems, cockpit and cabin display devices, and flight instruments intended for use in aircraft. For related information see also 04 Aircraft Communications and Navigation; 08 Aircraft Stability and Control; 19 Spacecraft Instrumentation and Astrionics; and 35 Instrumentation and Photography.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"107"},
+	  {"name": "Research and Support Facilities (Air)", "desc": "Includes airports, runways, hangars, and aircraft repair and overhaul facilities; wind tunnels, water tunnels, and shock tubes; flight simulators; and aircraft engine test stands. Also includes airport ground equipment and systems. For airport ground operations see 03 Air Transportation and Safety. For astronautical facilities see 14 Ground Support Systems and Facilities (Space).", "imageURL":"images/bullet_ball_glass_grey2.png","id":"107"}]},
+
+  {"name": "Astronautics", "imageURL":"images/astronaut-icon.png","id":"5", 
+  "children":[{"name": "Astrodynamics", "desc": "Includes powered and free-flight trajectories; orbital and launching dynamics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"150"},
+	  {"name": "Astronautics (General)", "desc": "Includes general research topics related to space flight and manned and unmanned space vehicles, platforms or objects launched into, or assembled in, outer space; and related components and equipment. Also includes manufacturing and maintenance of such vehicles or platforms. For specific topics in astronautics see categories 13 through 20. For extraterrestrial exploration see 91 Lunar and Planetary Science and Exploration.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"151"},
+	  {"name": "Ground Support Systems and Facilities (Space)", "desc": "Includes launch complexes, research and production facilities; ground support equipment, e.g., mobile transporters; and test chambers and simulators. Also includes extraterrestrial bases and supporting equipment. For related information see also 09 Research and Support Facilities (Air).", "imageURL":"images/bullet_ball_glass_grey2.png","id":"152"},
+	  {"name": "Launch Vehicles and Launch Operations", "desc": "Includes all classes of launch vehicles, launch/space vehicle systems, and boosters; and launch operations. For related information see also 18 Spacecraft Design, Testing, and Performance; and 20 Spacecraft Propulsion and Power.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"153"},
+	  {"name": "Space Transportation and Safety", "desc": "Includes passenger and cargo space transportation, e.g., shuttle operations; and space rescue techniques. For related information see also 03 Air Transportation and Safety; 15 Launch Vehicles and Launch Operations; and 18 Spacecraft Design, Testing and Performance. For space suits see 54 Man/System Technology and Life Support.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"154"},
+	  {"name": "Spacecraft Design, Testing and Performance", "desc": "Includes satellites; space platforms; space stations; spacecraft systems and components such as thermal and environmental controls; and spacecraft control and stability characteristics. For life support systems see 54 Man/System Technology and Life Support. For related information see also 05 Aircraft Design, Testing and Performance; 39 Structural Mechanics; and 16 Space Transportation and Safety.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"155"},
+	  {"name": "Spacecraft Instrumentation and Astrionics", "desc": "Includes the design, manufacture, or use of devices for the purpose of measuring, detecting, controlling, computing, recording, or processing data related to the operation of space vehicles or platforms. For related information see also 06 Aircraft Instrumentation and Avionics; For spaceborne instruments not integral to the vehicle itself see 35 Instrumentation and Photography; For spaceborne telescopes and other astronomical instruments see 89 Astronomy.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"156"},
+	  {"name": "Spacecraft Propulsion and Power", "desc": "Includes main propulsion systems and components, e.g., rocket engines; and spacecraft auxiliary power sources. For related information see also 07 Aircraft Propulsion and Power; 28 Propellants and Fuels; 15 Launch Vehicles and Launch Operations; and 44 Energy Production and Conversion.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"157"},
+	  {"name": "Space Communications, Spacecraft Communications, Command and Tracking", "desc": "Includes space systems telemetry; space communications networks; astronavigation and guidance; and spacecraft radio blackout. For related information see also 04 Aircraft Communications and Navigation; and 32 Communications and Radar.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"158"}]},
+
+  {"name": "Chemistry and Materials", "imageURL":"images/chemistry.png","id":"8" ,
+  "children":[{"name": "Chemistry and Materials (General)", "desc": "Includes general research topics related to the composition, properties, structure, and use of chemical compounds and materials as they relate to aircraft, launch vehicles, and spacecraft. For specific topics in chemistry and materials see categories 24 through 29. For astrochemistry see category 90 Astrophysics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"180"},
+  {"name": "Composite Materials", "desc": "Includes physical, chemical, and mechanical properties of laminates and other composite materials.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"181"},
+  {"name": "Inorganic, Organic and Physical Chemistry", "desc": "Includes the analysis, synthesis, and use inorganic and organic compounds; combustion theory; electrochemistry; and photochemistry. For related information see category 34 Fluid Dynamics and Thermodynamics. For astrochemistry see category 90 Astrophysics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"182"},
+  {"name": "Metals and Metallic Materials", "desc": "Includes physical, chemical, and mechanical properties of metals and metallic materials; and metallurgy.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"183"},
+  {"name": "Nonmetallic Materials", "desc": "Includes physical, chemical, and mechanical properties of plastics, elastomers, lubricants, polymers, textiles, adhesives, and ceramic materials. For composite materials see 24 Composite Materials.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"184"},
+  {"name": "Propellants and Fuels", "desc": "Includes rocket propellants, igniters, and oxidizers; their storage and handling procedures; and aircraft fuels. For nuclear fuels see 73 Nuclear Physics. For related information see also 07 Aircraft Propulsion and Power; 20 Spacecraft Propulsion and Power; and 44 Energy Production and Conversion.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"185"},
+  {"name": "Space Processing", "desc": "Includes space-based development of materials, compounds, and processes for research or commercial application. Also includes the development of materials and compounds in simulated reduced-gravity environments. For legal aspects of space commercialization see 84 Law, Political Science and Space Policy.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"186"}]},
+
+  {"name": "Engineering", "imageURL":"images/engineering-icon.png","id":"12",
+  "children":[{"name": "Communications and Radar", "desc": "Includes radar; radio, wire, and optical communications; land and global communications; communications theory. For related information see also 04 Aircraft Communications and Navigation; and 17 Space Communications, Spacecraft Communications, Command and Tracking; for search and rescue, see 03 Air Transportation and Safety; and 16 Space Transportation and Safety.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"190"},
+  {"name": "Electronics and Electrical Engineering", "desc": "Includes development, performance, and maintainability of electrical/electronic devices and components; related test equipment; and microelectronics and integrated circuitry. For related information see also 60 Computer Operations and Hardware; and 76 Solid-State Physics. For communications equipment and devices see 32 Communications and Radar.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"191"},
+  {"name": "Engineering (General)", "desc": "Includes general research topics related to engineering and applied physics, and particular areas of vacuum technology, industrial engineering, cryogenics, and fire prevention. For specific topics in engineering see categories 32 through 39.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"192"},
+  {"name": "Fluid Mechanics and Thermodynamics", "desc": "Includes fluid dynamics and kinematics and all forms of heat transfer; boundary layer flow; hydrodynamics; hydraulics; fluidics; mass transfer and ablation cooling. For related information see also 02 Aerodynamics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"193"},
+  {"name": "Instrumentation and Photography", "desc": "Includes remote sensors; measuring instruments and gages; detectors; cameras and photographic supplies; and holography. For aerial photography see 43 Earth Resources and Remote Sensing. For related information see also 06 Avionics and Aircraft Instrumentation; and 19 Spacecraft Instrumentation.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"194"},
+  {"name": "Lasers and Masers", "desc": "Includes lasing theory, laser pumping techniques, maser amplifiers, laser materials, and the assessment of laser and maser outputs. For cases where the application of the laser or maser is emphasized see also the specific category where the application is treated. For related information see also 76 Solid-State Physics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"195"},
+  {"name": "Mechanical Engineering", "desc": "Includes mechanical devices and equipment; machine elements and processes. For cases where the application of a device or the host vehicle is emphasized see also the specific category where the application or vehicle is treated. For robotics see 63 Cybernetics, Artificial Intelligence, and Robotics; and 54 Man/System Technology and Life Support.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"196"},
+  {"name": "Quality Assurance and Reliability", "desc": "Includes approaches to, and methods for reliability analysis and control, quality control, inspection, maintainability, and standardization.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"197"},
+  {"name": "Structural Mechanics", "desc": "Includes structural element design, analysis and testing; dynamic responses of structures; weight analysis; fatigue and other structural properties; and mechanical and thermal stresses in structures. For applications see 05 Aircraft Design, Testing and Performance; and 18 Spacecraft Design, Testing and Performance.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"195"}]},
+
+  {"name": "General", "imageURL":"images/user5.png","id":"16",
+  "children":[{"name": "Genera1;", "imageURL":"images/user7.png","id":"17"}]},
+  {"name": "Geosciences", "imageURL":"images/user5.png","id":"18",
+   "children":[{"name": "Earth Resources and Remote Sensing", "desc": "Includes remote sensing of earth features, phenomena and resources by aircraft, balloon, rocket, and spacecraft; analysis of remote sensing data and imagery; development of remote sensing products; photogrammetry; aerial photography; and hydrology. For related instrumentation see 35 Instrumentation and Photography.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"200"},
+   {"name": "Energy Production and Conversion", "desc": "Includes specific energy conversion systems, e.g., fuel cells; and solar, geothermal, windpower, and waterwave conversion systems; energy storage; and traditional power generators. For technologies related to nuclear energy production see 73 Nuclear Physics. For related information see also 07 Aircraft Propulsion and Power; 20 Spacecraft Propulsion and Power; and 28 Propellants and Fuels.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"201"},
+   {"name": "Environment Pollution", "desc": "Includes atmospheric, water, soil, noise, and thermal pollution.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"202"},
+   {"name": "Geophysics", "desc": "Includes earth structure and dynamics, aeronomy; upper and lower atmosphere studies; ionospheric and magnetospheric physics; and geomagnetism. For related information see 47 Meteorology and Climatology; and 93 Space Radiation.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"203"},
+   {"name": "Geosciences (General)", "desc": "Includes general research topics related to the Earth sciences, and the specific areas of petrology, minerology, and general geology. For other specific topics in geosciences see categories 42 through 48.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"204"},
+   {"name": "Meteorology and Climatology", "desc": "Includes weather observation forecasting and modification.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"205"},
+   {"name": "Oceanography", "desc": "Includes the physical, chemical and biological aspects of oceans and seas; ocean dynamics; and marine resources. For related information see also 43 Earth Resources and Remote Sensing.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"206"}]},
+   
+   {"name": "Life Sciences", "imageURL":"images/user5.png","id":"19",
+	   "children":[{"name": "Behavioral Sciences", "desc": "Includes psychological factors; individual and group behavior; crew training and evaluation; and psychiatric research.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"220"},
+	   {"name": "Exobiology", "desc": "Includes astrobiology; planetary biology; and extraterrestrial life. For the biological effects of aerospace environments on humans see 52 Aerospace Medicine; on animals and plants see 51 Life Sciences. For psychological and behavioral effects of aerospace environments see 53 Behavioral Science.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"221"},
+	   {"name": "Life Sciences (General)", "desc": "Includes general research topics related to plant and animal biology (non-human); ecology; microbiology; and also the origin, development, structure, and maintenance, of animals and plants in space and related environmental conditions. For specific topics in life sciences see categories 52 through 55.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"222"},
+	   {"name": "Man/System Technology and Life Support", "desc": "Includes human factors engineering, bionics, man-machine systems, life support, space suits and protective clothing. For related information see also 16 Space Transportation; and 52 Aerospace Medicine.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"223"}]},   
+
+	{"name": "Mathematical and Computer Science", "imageURL":"images/user5.png","id":"20",
+		   "children":[{"name": "Computer Operations and Hardware", "desc": "Includes hardware for computer graphics, firmware and data processing. For components see 33 Electronics and Electrical Engineering. For computer vision see 63 Cybernetics, Artificial Intelligence and Robotics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"230"},
+		   {"name": "Computer Programming and Software", "desc": "Includes software engineering, computer programs, routines, algorithms, and specific applications, e.g., CAD/CAM. For computer software applied to specific applications, see also the associated category.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"231"},
+		   {"name": "Computer Systems", "desc": "Includes software engineering, computer programs, routines, algorithms, and specific applications, e.g., CAD/CAM. For computer software applied to specific applications, see also the associated category.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"232"},
+		   {"name": "Cybernetics, Artificial Intelligence and Robotics", "desc": "Includes feedback and control theory, information theory, machine learning, and expert systems. For related information see also 54 Man/System Technology and Life Support.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"233"},
+		   {"name": "Mathematical and Computer Sciences (General)", "desc": "Includes general topics and overviews related to mathematics and computer science. For specific topics in these areas see categories 60 through 67.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"234"},
+		   {"name": "Numerical Analysis", "desc": "Includes iteration, differential and difference equations, and numerical approximation.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"235"},
+		   {"name": "Statistics and Probability", "desc": "Includes data sampling and smoothing; Monte Carlo method; time series analysis; and stochastic processes.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"236"},
+		   {"name": "Systems Analysis and Operations Research", "desc": "Includes mathematical modeling of systems; network analysis; mathematical programming; decision theory; and game theory.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"237"},
+		   {"name": "Theoretical Mathematics", "desc": "Includes algebra, functional analysis, geometry, topology, set theory, group theory and number theory.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"238"}]},	 
+		   
+{"name": "Physics", "imageURL":"images/user5.png","id":"21",
+			   "children":[{"name": "Acoustics", "desc": "Includes sound generation, transmission, and attenuation. For noise pollution see 45 Environment Pollution. For aircraft noise see also 02 Aerodynamics; and 07 Aircraft Propulsion and Power.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"240"},
+			   {"name": "Atomic and Molecular Physics", "desc": "Includes atomic and molecular structure, electron properties, and atomic and molecular spectra. For elementary particle physics see 77 Physics of Elementary Particles and Fields; for nuclear physics see 73 Nuclear Physics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"241"},
+			   {"name": "Nuclear Physics", "desc": "Includes nuclear particles; and reactor theory. For space radiation see 93 Space Radiation. For atomic and molecular physics see 72 Atomic and Molecular Physics. For elementary particle physics see 77 Physics of Elementary Particles and Fields. For nuclear astrophysics see 90 Astrophysics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"242"},
+			   {"name": "Optics", "desc": "Includes light phenomena and the theory of optical devices. For lasers see 36 Lasers and Masers.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"243"},
+			   {"name": "Physics (General)", "desc": "Includes general research topics related to mechanics, kinetics, magnetism, and electrodynamics. For specific areas of physics see categories 71 through 77. For related instrumentation see 35 Instrumentation and Photography; for geophysics, astrophysics, or solar physics see 46 Geophysics; 90 Astrophysics;or 92 Solar Physics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"244"},
+			   {"name": "Physics of Elementary Particles and Fields", "desc": "Includes quantum mechanics; theoretical physics; and statistical mechanics. For related information see also 72 Atomic and Molecular Physics; 73 Nuclear Physics; and 25 Inorganic, Organic and Physical Chemistry.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"245"},
+			   {"name": "Plasma Physics", "desc": "Includes magnetohydrodynamics and plasma fusion. For ionospheric plasmas see 46 Geophysics. For space plasmas see 90 Astrophysics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"246"},
+			   {"name": "Solid-State Physics", "desc": "Includes condensed matter physics, crystallography, and superconductivity. For related information see also 33 Electronics and Electrical Engineering; and 36 Lasers and Masers.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"247"}]},
+
+{"name": "Social and Information Sciences", "imageURL":"images/user5.png","id":"22",
+				   "children":[{"name": "Administration and Management", "desc": "Includes management planning and research.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"250"},
+				   {"name": "Documentation and Information Science", "desc": "Includes information management; information storage and retrieval technology; technical writing; graphic arts; and micrography. For computer program documentation see 61 Computer Programming and Software.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"251"},
+				   {"name": "Economics and Cost Analysis", "desc": "Includes cost effectiveness studies.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"252"},
+				   {"name": "Law, Political Science and Space Policy", "desc": "Includes; aviation law; space law and policy; international law; international cooperation; and patent policy.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"253"},
+				   {"name": "Social and Information Sciences (General)", "desc": "Includes general research topics related to sociology; educational programs and curricula.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"254"},
+				   {"name": "Technology Utilization and Surface Transportation", "desc": "Includes aerospace technology transfer; urban technology; surface and mass transportation. For related information see also 03 Air Transportation and Safety; 16 Space Transportation and Safety; and 44 Energy Production and Conversion. For specific technology transfer applications see also the category where the subject is treated.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"255"}]},			   
+
+{"name": "Space Sciences ", "imageURL":"images/user5.png","id":"23",
+					   "children":[{"name": "Astronomy", "desc": "Includes observations of celestial bodies; astronomical instruments and techniques; radio, gamma-ray, x-ray, ultraviolet, and infrared astronomy; and astrometry.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"260"},
+					   {"name": "Astrophysics", "desc": "Includes cosmology; celestial mechanics; space plasmas; and interstellar and interplanetary gases and dust.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"261"},
+					   {"name": "Lunar and Planetary Science and Exploration", "desc": "Includes planetology; selenology; meteorites; comets; craters; and manned and unmanned planetary and lunar flights. For spacecraft design or space stations see 18 Spacecraft Design, Testing and Performance.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"262"},
+					   {"name": "Solar Physics", "desc": "Includes solar activity, solar flares, solar radiation and sunspots. For related information see 93 Space Radiation.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"263"},
+					   {"name": "Space Radiation", "desc": "Includes cosmic radiation; and inner and outer Earth radiation belts. For biological effects of radiation on plants and animals see 51 Life Sciences; on human beings see 52 Aerospace Medicine. For theory see 73 Nuclear Physics.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"264"},
+					   {"name": "Space Sciences (General)", "desc": "Includes general research topics related to the natural space sciences. For specific topics in Space Sciences see categories 89 through 93.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"265"}]}
+]
+};
+
+force = d3.layout.force()
+    .on("tick", tick)
+    .size([w, h]);
+
+vis = d3.select("#chart").append("svg:svg")
+    .attr("width", w)
+    .attr("height", h);
+  update();
+  LoadData = false;
+}
+}
+function AddChild(){
+  var name = document.getElementById("inputText").value
+  if (name != null && name == ""){
+    name = "Quintus Titus"
+  }
+  
+  var nodeid = Math.floor(Math.random() * (id - 2)) + 1;
+  var newNode = {
+          "name": name, "imageURL":"images/user5.png","id":id
+    };
+  
+    function childeNode(node) {
+      if (node.id == nodeid){
+        if (node.children)
+            node.children.push(newNode);
+        else 
+          node.children = [newNode];
+      }else{
+        if (node.children){
+        for(var i = 0; i < node.children.length; i++) {
+          childeNode(node.children[i]);
+        }
+        }
+      } 
+    }
+    childeNode(root);
+
+    id++;
+    update();
+}
+
+    </script>
+  </head>
+  <body onLoad="loadImage();">
+    <div class="main">
+    <div id = "desc">Desc here</div>
+    <div id="chart"></div>
+    
+</div>
+
+
+  
+  </body>
+</html>
