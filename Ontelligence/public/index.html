@@ -4,6 +4,17 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
 <meta name="keywords" content="D3.js,Force-Directed Graph">
 <title>Ontelligence Viewer</title>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KCS7M10FJ8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-KCS7M10FJ8');
+</script>
+
 <!--<script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.25.0"></script>-->
 <script type="text/javascript" src="js/d3.v3.js"></script>
 <style type="text/css">
@@ -33,6 +44,7 @@ text {
 	width: 100%;
 }
 
+
 #chart {
 	
 }
@@ -40,13 +52,16 @@ text {
 <script type="text/javascript">
 
 var w = 1600,
-    h = 1200,
+    h = 1400,
     node,
     path,
     root,nodes,links,rootNode,id=19;
 
 var force,vis;
 var LoadData = true;
+
+var tooltip;
+
 function update() {
    if (force) force.stop();
   nodes = flatten(root);
@@ -82,6 +97,7 @@ function update() {
         .on("click", click)
         .on("mouseover", mouseover)
         .on("mouseout", mouseout)
+        .on("mousemove", mousemove)
         .call(force.drag);
 
    node.append("image")
@@ -133,7 +149,7 @@ function color(d) {
 }
 // Toggle children on click.
 function click(d) {
-  
+
   if ((d.children != null || d.children != undefined) || (d._children != null || d._children != undefined)) {
       if (d.children) {
         d._children = d.children;
@@ -147,20 +163,30 @@ function click(d) {
   else {
 	  //alert('https://data.nasa.gov/browse?q=' + encodeURIComponent(d.name));
 	  window.open('https://data.nasa.gov/browse?q=' + encodeURIComponent(d.name));
+
   }
   
 }
 
 function mouseover(d) {
-	//alert("mouseover");
-	if (d.desc != null && d.desc != undefined) {	
-		desc.innerHTML = d.desc + "<br>";
-	}	
+	if ((d.desc != null) && (d.desc != undefined)) {
+		tooltip.select("#tt-name").text(d.desc)
+    	tooltip.select("#tt-size").text("")
+    	return tooltip.style("visibility", "visible");
+	}
+	else {
+		return tooltip.style("visibility", "hidden");
+	}
+
 }
 
 function mouseout(d) {
 	//alert("mouseover");
-	desc.innerHTML = "<br><br>";
+	return tooltip.style("visibility", "hidden");
+}
+
+function mousemove(d) {
+	return tooltip.style("top", (d3.event.pageY - 50) + "px").style("left", (d3.event.pageX - 200) + "px");
 }
 
 var findNode = function (node) {
@@ -186,6 +212,24 @@ function flatten(root) {
   return nodes;
 }
 function loadImage(){
+	
+	tooltip = d3.select("#chart")
+	.append("div")
+	.attr("class", "my-tooltip")
+	.style("position", "absolute")
+	.style("z-index", "10")
+	.style("visibility", "hidden")
+	.style("background","black")
+	.style("color","white")
+	.style("padding","10px 10px 10px 10px")
+	.style("font", "12px sans-serif");
+	tooltip.append("div")
+	.attr("id", "tt-name")
+	.text("simple");
+	tooltip.append("div")
+	.attr("id", "tt-size")
+	.text("simple");
+	
   if(LoadData){
 root = {
 "name": "NASA", "imageURL":"images/nasa-1-282702.png","id":"1",
@@ -234,7 +278,7 @@ root = {
   {"name": "Structural Mechanics", "desc": "Includes structural element design, analysis and testing; dynamic responses of structures; weight analysis; fatigue and other structural properties; and mechanical and thermal stresses in structures. For applications see 05 Aircraft Design, Testing and Performance; and 18 Spacecraft Design, Testing and Performance.", "imageURL":"images/bullet_ball_glass_grey2.png","id":"195"}]},
 
   {"name": "General", "imageURL":"images/general.png","id":"16",
-  "children":[{"name": "General;", "imageURL":"images/user7.png","id":"17"}]},
+  "children":[{"name": "General;", "desc": "General", "imageURL":"images/bullet_ball_glass_grey2.png","id":"17"}]},
   {"name": "Geosciences", "imageURL":"images/earth.png","id":"18",
    "children":[{"name": "Earth Resources and Remote Sensing", "desc": "Includes remote sensing of earth features, phenomena and resources by aircraft, balloon, rocket, and spacecraft; analysis of remote sensing data and imagery; development of remote sensing products; photogrammetry; aerial photography; and hydrology. For related instrumentation see 35 Instrumentation and Photography.", "imageURL":"images/bullet_ball_glass_green.png","id":"200"},
    {"name": "Energy Production and Conversion", "desc": "Includes specific energy conversion systems, e.g., fuel cells; and solar, geothermal, windpower, and waterwave conversion systems; energy storage; and traditional power generators. For technologies related to nuclear energy production see 73 Nuclear Physics. For related information see also 07 Aircraft Propulsion and Power; 20 Spacecraft Propulsion and Power; and 28 Propellants and Fuels.", "imageURL":"images/bullet_ball_glass_green.png","id":"201"},
@@ -334,10 +378,10 @@ function AddChild(){
     </script>
 </head>
 <body onLoad="loadImage();">
-	<div class="main">
-		<div id="desc" class="desc"><br></div>
+	<div class="main" id="maincontainer">
 		<div id="chart"></div>
-
+		<div id="desc">This is part of the <a href="https://2021.spaceappschallenge.org/challenges/statements/ontologies-and-interactive-network-visualizations/teams/ontelligence/project">Ontelligence 2021 NASA Space Apps Challenge</a>.  The code is at <a href="https://github.com/wayward710/Ontelligence">https://github.com/wayward710/Ontelligence. 
+		Note: you can expand and collapse categories by clicking on the topic icons.</a></div>
 	</div>
 
 
