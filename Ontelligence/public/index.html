@@ -5,6 +5,13 @@
 <meta name="keywords" content="D3.js,Force-Directed Graph">
 <title>Ontelligence Viewer</title>
 
+<link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/navbar-fixed/">    
+<!-- Bootstrap core CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Custom styles for this template -->
+<link href="navbar-top-fixed.css" rel="stylesheet">
+
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KCS7M10FJ8"></script>
 <script>
@@ -14,6 +21,8 @@
 
   gtag('config', 'G-KCS7M10FJ8');
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.1/js/bootstrap.min.js"></script>
 
 <!--<script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.25.0"></script>-->
 <script type="text/javascript" src="js/d3.v3.js"></script>
@@ -44,6 +53,19 @@ text {
 	width: 100%;
 }
 
+ .bd-placeholder-img {
+   font-size: 1.125rem;
+   text-anchor: middle;
+   -webkit-user-select: none;
+   -moz-user-select: none;
+   user-select: none;
+ }
+
+ @media (min-width: 768px) {
+   .bd-placeholder-img-lg {
+     font-size: 3.5rem;
+   }
+ }
 
 #chart {
 	
@@ -378,16 +400,33 @@ function AddChild(){
     </script>
 </head>
 <body onLoad="loadImage();">
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Ontelligence</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav me-auto mb-2 mb-md-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" aria-current="page" href="https://ontelligence.cloud/index.html"  target="_blank">Project Page</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://2021.spaceappschallenge.org/challenges/statements/ontologies-and-interactive-network-visualizations/teams/ontelligence/project" target="_blank">Space Apps Challenge</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="about.html">About</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
 	<div class="main" id="maincontainer">
 		<div id="chart"></div>
-		<div id="desc">
-		<p>Please see <a href="https://ontelligence.cloud/index.html">https://ontelligence.cloud/index.html</a> 
-		for more information about the team's work. This is part of 
-		the <a href="https://2021.spaceappschallenge.org/challenges/statements/ontologies-and-interactive-network-visualizations/teams/ontelligence/project">
-		Ontelligence 2021 NASA Space Apps Challenge</a> project.  </p><p>
-		The code is at <a href="https://github.com/wayward710/Ontelligence">https://github.com/wayward710/Ontelligence.</a>  </p><p>
-		The presentation is at <a href="https://docs.google.com/presentation/d/1_40_BRREuWmmMp3DxTWqUgzgQwfc_fruVWqwkGfmpzI/edit?usp=sharing">https://docs.google.com/presentation/d/1_40_BRREuWmmMp3DxTWqUgzgQwfc_fruVWqwkGfmpzI/edit?usp=sharing</a></p>
-		<p><em>Note: you can expand and collapse categories by clicking on the topic icons.</em></p></div>
+		<div id="desc"></div>
 	</div>
 
 
